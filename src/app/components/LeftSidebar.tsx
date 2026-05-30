@@ -14,7 +14,7 @@ export function LeftSidebar({ isDark }: LeftSidebarProps) {
   const activeBorder = isDark ? '#e7e7e7' : '#111827';
 
   return (
-    <aside className="w-[228px] flex-shrink-0">
+    <aside className="w-full lg:w-[228px] lg:flex-shrink-0">
       <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: cardBg, borderColor }}>
         {/* Header */}
         <div className="p-3 border-b flex items-center gap-2" style={{ borderColor }}>

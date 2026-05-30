@@ -15,7 +15,7 @@ export function TopNavbar({ isDark, onToggleDark }: TopNavbarProps) {
 
   return (
     <header
-      className="sticky top-0 z-50 border-b"
+      className="sticky top-0 z-50 border-b hidden lg:block"
       style={{ backgroundColor: navBg, borderColor: navBorder }}
     >
       <div className="max-w-[1128px] mx-auto px-4">
@@ -34,8 +34,8 @@ export function TopNavbar({ isDark, onToggleDark }: TopNavbarProps) {
               </svg>
               <input
                 type="text"
-                placeholder="Search"
-                className="w-[220px] pl-8 pr-3 py-1.5 text-sm rounded focus:outline-none focus:ring-1 focus:ring-blue-400"
+                placeholder="i'm looking for"
+                className="w-[130px] sm:w-[220px] pl-8 pr-3 py-1.5 text-sm rounded focus:outline-none focus:ring-1 focus:ring-blue-400 transition-all"
                 style={{ backgroundColor: searchBg, color: searchText }}
               />
             </div>
@@ -44,7 +44,7 @@ export function TopNavbar({ isDark, onToggleDark }: TopNavbarProps) {
           {/* Right: Nav items */}
           <nav className="flex items-stretch h-full">
             {/* Home — active with underline */}
-            <a href="#" className="flex flex-col items-center justify-center px-3 min-w-[68px] border-b-2 border-gray-900 relative" style={{ color: isDark ? '#ffffff' : '#000000' }}>
+            <a href="#" className="hidden md:flex flex-col items-center justify-center px-3 min-w-[68px] border-b-2 border-gray-900 relative" style={{ color: isDark ? '#ffffff' : '#000000' }}>
               <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M22.54 8.61L12.38 1.12a.65.65 0 00-.76 0L1.46 8.61A.68.68 0 001.1 9.2v12.27a.68.68 0 00.68.68h7.32v-7.48h5.8v7.48h7.32a.68.68 0 00.68-.68V9.2a.68.68 0 00-.36-.59z"/>
               </svg>
@@ -52,7 +52,7 @@ export function TopNavbar({ isDark, onToggleDark }: TopNavbarProps) {
             </a>
 
             {/* My Network */}
-            <a href="#" className="flex flex-col items-center justify-center px-3 min-w-[68px] hover:text-black transition-colors relative" style={{ color: navText }}>
+            <a href="#" className="hidden md:flex flex-col items-center justify-center px-3 min-w-[68px] hover:text-black transition-colors relative" style={{ color: navText }}>
               <div className="relative">
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" opacity="0" />
@@ -64,7 +64,7 @@ export function TopNavbar({ isDark, onToggleDark }: TopNavbarProps) {
             </a>
 
             {/* Jobs */}
-            <a href="#" className="flex flex-col items-center justify-center px-3 min-w-[56px] hover:text-black transition-colors" style={{ color: navText }}>
+            <a href="#" className="hidden md:flex flex-col items-center justify-center px-3 min-w-[56px] hover:text-black transition-colors" style={{ color: navText }}>
               <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M17 6V5a3 3 0 00-3-3h-4a3 3 0 00-3 3v1H2v4l2 .5V19a1 1 0 001 1h14a1 1 0 001-1v-8.5l2-.5V6h-5zm-8-1a1 1 0 011-1h4a1 1 0 011 1v1H9V5zm9 13H6v-7.9l6 1.4 6-1.4V18z"/>
               </svg>
@@ -72,7 +72,7 @@ export function TopNavbar({ isDark, onToggleDark }: TopNavbarProps) {
             </a>
 
             {/* Messaging */}
-            <a href="#" className="flex flex-col items-center justify-center px-3 min-w-[68px] hover:text-black transition-colors" style={{ color: navText }}>
+            <a href="#" className="hidden md:flex flex-col items-center justify-center px-3 min-w-[68px] hover:text-black transition-colors" style={{ color: navText }}>
               <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M16 4H8C4.7 4 2 6.7 2 10s2.7 6 6 6v4l4-4h4c3.3 0 6-2.7 6-6S19.3 4 16 4z"/>
               </svg>
@@ -80,7 +80,7 @@ export function TopNavbar({ isDark, onToggleDark }: TopNavbarProps) {
             </a>
 
             {/* Notifications */}
-            <a href="#" className="flex flex-col items-center justify-center px-3 min-w-[76px] hover:text-black transition-colors" style={{ color: navText }}>
+            <a href="#" className="hidden md:flex flex-col items-center justify-center px-3 min-w-[76px] hover:text-black transition-colors" style={{ color: navText }}>
               <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M22 19h-6.18C15.4 20.21 13.8 21 12 21s-3.4-.79-3.82-2H2v-1l2-1V10c0-3.35 2.29-6.16 5.5-6.83V3a2.5 2.5 0 015 0v.17C17.71 3.84 20 6.65 20 10v7l2 1v1zM12 4a5 5 0 00-5 5v7h10V9a5 5 0 00-5-5zm0 16a1 1 0 001-1h-2a1 1 0 001 1z"/>
               </svg>
@@ -88,7 +88,7 @@ export function TopNavbar({ isDark, onToggleDark }: TopNavbarProps) {
             </a>
 
             {/* Me */}
-            <a href="#" className="flex flex-col items-center justify-center px-3 min-w-[52px] border-r hover:text-black transition-colors" style={{ color: navText, borderColor: navBorder }}>
+            <a href="#" className="flex flex-col items-center justify-center px-3 min-w-[52px] md:border-r hover:text-black transition-colors" style={{ color: navText, borderColor: navBorder }}>
               <img
                 src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop"
                 alt="Me"
@@ -101,7 +101,7 @@ export function TopNavbar({ isDark, onToggleDark }: TopNavbarProps) {
             </a>
 
             {/* For Business */}
-            <a href="#" className="flex flex-col items-center justify-center px-3 min-w-[72px] hover:text-black transition-colors" style={{ color: navText }}>
+            <a href="#" className="hidden md:flex flex-col items-center justify-center px-3 min-w-[72px] hover:text-black transition-colors" style={{ color: navText }}>
               <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M3 3h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 17h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4z"/>
               </svg>
@@ -112,7 +112,7 @@ export function TopNavbar({ isDark, onToggleDark }: TopNavbarProps) {
             </a>
 
             {/* Learning */}
-            <a href="#" className="flex flex-col items-center justify-center px-3 min-w-[60px] hover:text-black transition-colors border-r" style={{ color: navText, borderColor: navBorder }}>
+            <a href="#" className="hidden md:flex flex-col items-center justify-center px-3 min-w-[60px] hover:text-black transition-colors md:border-r" style={{ color: navText, borderColor: navBorder }}>
               <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
               </svg>
@@ -122,7 +122,7 @@ export function TopNavbar({ isDark, onToggleDark }: TopNavbarProps) {
             {/* Dark mode toggle */}
             <button
               onClick={onToggleDark}
-              className="flex flex-col items-center justify-center px-3 transition-colors"
+              className="flex flex-col items-center justify-center px-3 transition-colors cursor-pointer"
               style={{ color: navText }}
               title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
@@ -133,7 +133,7 @@ export function TopNavbar({ isDark, onToggleDark }: TopNavbarProps) {
             </button>
 
             {/* Try Premium */}
-            <a href="#" className="flex items-center px-3 hover:bg-orange-50 rounded transition-colors" style={{ color: '#915907' }}>
+            <a href="#" className="hidden md:flex items-center px-3 hover:bg-orange-50 rounded transition-colors" style={{ color: '#915907' }}>
               <span className="text-xs font-medium underline whitespace-nowrap">Try Premium for ₹0</span>
             </a>
           </nav>
