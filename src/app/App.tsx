@@ -25,6 +25,47 @@ export default function App() {
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const [postsList, setPostsList] = useState(savedPosts);
+
+  useEffect(() => {
+    const loadPosts = () => {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.get('scrapedPosts', (result) => {
+          if (result.scrapedPosts && Array.isArray(result.scrapedPosts) && result.scrapedPosts.length > 0) {
+            const mapped = result.scrapedPosts.map((p: any) => ({
+              id: p.id || Math.random().toString(),
+              author: {
+                name: p.authorName || 'LinkedIn User',
+                title: p.authorTitle || '',
+                avatar: p.authorAvatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop',
+                followers: p.authorFollowers || '',
+              },
+              content: p.content || '',
+              timeAgo: p.timeAgo || 'Recently',
+              thumbnailUrl: p.thumbnailUrl || undefined,
+              date: p.date ? new Date(p.date) : new Date(),
+            }));
+            setPostsList(mapped);
+          }
+        });
+      }
+    };
+
+    loadPosts();
+
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+      const listener = (changes: any, areaName: string) => {
+        if (areaName === 'local' && changes.scrapedPosts) {
+          loadPosts();
+        }
+      };
+      chrome.storage.onChanged.addListener(listener);
+      return () => {
+        chrome.storage.onChanged.removeListener(listener);
+      };
+    }
+  }, []);
+
   // ── Dark mode: toggle .dark class on <html> ───────────────────────────────
   useEffect(() => {
     if (isDark) {
@@ -74,7 +115,7 @@ export default function App() {
 
   // ── Filter posts ──────────────────────────────────────────────────────────
   const filteredPosts = useMemo(() => {
-    let result = savedPosts;
+    let result = postsList;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(p =>
@@ -84,12 +125,12 @@ export default function App() {
       );
     }
     return result;
-  }, [activeTab, searchQuery]);
+  }, [activeTab, searchQuery, postsList]);
 
   // ── Old posts (>7 days) ───────────────────────────────────────────────────
   const oldPostCount = useMemo(() =>
-    savedPosts.filter(p => Date.now() - new Date(p.date).getTime() > 7 * 24 * 60 * 60 * 1000).length
-  , []);
+    postsList.filter(p => Date.now() - new Date(p.date).getTime() > 7 * 24 * 60 * 60 * 1000).length
+  , [postsList]);
 
   const filteredHistory = searchHistory.filter(h =>
     !searchInput || h.toLowerCase().includes(searchInput.toLowerCase())
@@ -295,7 +336,7 @@ export default function App() {
 
           {/* Right column */}
           <div className="order-3 lg:order-3 w-full lg:w-[316px] lg:flex-shrink-0 flex flex-col gap-4 px-4 md:px-0">
-            <StatsPanel posts={savedPosts} isDark={isDark} />
+            <StatsPanel posts={postsList} isDark={isDark} />
             <RightSidebar />
           </div>
         </div>
@@ -374,7 +415,7 @@ export default function App() {
               </button>
             </div>
             <div className="overflow-y-auto">
-              <StatsPanel posts={savedPosts} isDark={isDark} />
+              <StatsPanel posts={postsList} isDark={isDark} />
             </div>
           </div>
         </div>

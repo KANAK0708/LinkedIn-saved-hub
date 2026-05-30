@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "LinkedIn Saved Hub",
+  "version": "1.0.0",
+  "description": "Enhanced UI, search, and analytics dashboard for your LinkedIn Saved Posts.",
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_title": "Open Saved Hub"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/my-items/saved-posts*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
