@@ -20,63 +20,122 @@ function getAttr(element, selector, attr) {
   return sub ? sub.getAttribute(attr) || '' : '';
 }
 
+// Check if we are on the saved posts page
+function isSavedPostsPage() {
+  return window.location.href.includes('/my-items/saved-posts');
+}
+
 // Main scraper function
 function scrapeSavedPosts() {
+  if (!isSavedPostsPage()) return;
+  
   log('Starting scrape...');
   
   // Selectors for listing containers
   const listItems = document.querySelectorAll(
-    'li.mn-my-items__list-item, .entity-result, .reusable-search__result-container, [data-urn]'
+    'li.mn-my-items__list-item, .entity-result, .reusable-search__result-container, [data-urn], .feed-shared-update-v2'
   );
   
   if (listItems.length === 0) {
-    log('No saved items found on page yet.');
+    log('No items found on page yet.');
     return;
   }
   
   const scrapedPosts = [];
   
   listItems.forEach((item, index) => {
-    // Avoid scraping non-result elements
-    if (!item.querySelector('.entity-result__title-text, .entity-result__title')) {
-      return;
+    // Try to find author name
+    let authorName = '';
+    const nameSelectors = [
+      '.entity-result__title-text a',
+      '.entity-result__title-text span[aria-hidden="true"]',
+      '.entity-result__title-text',
+      '.entity-result__title',
+      '.update-components-actor__name',
+      '.feed-shared-actor__name',
+      '[class*="actor__name"]',
+      'a[href*="/in/"] span[aria-hidden="true"]',
+      'a[href*="/in/"]'
+    ];
+    
+    for (const selector of nameSelectors) {
+      const text = getText(item, selector);
+      if (text) {
+        authorName = text.split('\n')[0].trim();
+        break;
+      }
+    }
+
+    if (!authorName) return; // Skip if we can't identify the author
+    
+    // Try to find content text
+    let content = '';
+    const contentSelectors = [
+      '.entity-result__summary',
+      '.entity-result__description',
+      '.feed-shared-update-v2__description',
+      '.update-components-text',
+      '[class*="content-summary"]',
+      '[class*="update-v2__description"]',
+      '[class*="feed-shared-text-view"]',
+      '.feed-shared-text'
+    ];
+    
+    for (const selector of contentSelectors) {
+      const text = getText(item, selector);
+      if (text) {
+        content = text.trim();
+        break;
+      }
+    }
+
+    if (!content) return; // Skip if no content text is found
+
+    // Author Title
+    let authorTitle = '';
+    const titleSelectors = [
+      '.entity-result__primary-subtitle',
+      '.update-components-actor__description',
+      '.feed-shared-actor__description',
+      '[class*="actor__description"]'
+    ];
+    for (const selector of titleSelectors) {
+      const text = getText(item, selector);
+      if (text) {
+        authorTitle = text.trim();
+        break;
+      }
     }
     
-    // 1. Author Name
-    let authorName = getText(item, '.entity-result__title-text a');
-    if (!authorName) {
-      authorName = getText(item, '.entity-result__title-text span[aria-hidden="true"]');
+    // Author Avatar
+    let authorAvatar = '';
+    const avatarSelectors = [
+      '.entity-result__image img',
+      '.presence-entity__image img',
+      '.update-components-actor__avatar img',
+      '.feed-shared-actor__avatar img',
+      'img[class*="actor__avatar"]',
+      'img[class*="presence-entity"]'
+    ];
+    for (const selector of avatarSelectors) {
+      const src = getAttr(item, selector, 'src');
+      if (src && !src.startsWith('data:image')) {
+        authorAvatar = src;
+        break;
+      }
     }
-    if (!authorName) {
-      authorName = getText(item, '.entity-result__title-text');
-    }
-    // Clean up connections degree if appended (e.g. "Shubham Wadekar\n• 3rd+")
-    authorName = authorName.split('\n')[0].trim();
-    
-    // 2. Author Headline/Title
-    const authorTitle = getText(item, '.entity-result__primary-subtitle');
-    
-    // 3. Author Avatar
-    let authorAvatar = getAttr(item, '.entity-result__image img, .presence-entity__image img', 'src');
-    if (!authorAvatar || authorAvatar.startsWith('data:image')) {
-      // Fallback placeholder
+    if (!authorAvatar) {
       authorAvatar = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop';
     }
     
-    // 4. Time Ago / Connection Badge
-    const timeAgo = getText(item, '.entity-result__secondary-subtitle');
+    // Time Ago
+    let timeAgo = getText(item, '.entity-result__secondary-subtitle') || getText(item, '.feed-shared-actor__sub-text') || 'Recently';
+    timeAgo = timeAgo.trim();
     
-    // 5. Post Content Text
-    let content = getText(item, '.entity-result__summary');
-    if (!content) {
-      content = getText(item, '.entity-result__description');
-    }
-    
-    // 6. Thumbnail Image (embedded image preview)
+    // Thumbnail Image (media content)
     let thumbnailUrl = getAttr(item, '.entity-result__content img, .entity-result__image-content img', 'src');
     if (!thumbnailUrl || thumbnailUrl.startsWith('data:image')) {
-      // Look for any image in the card body
-      const images = item.querySelectorAll('.entity-result__content img, img');
+      const images = item.querySelectorAll('img');
       for (let img of images) {
         const src = img.getAttribute('src');
         if (src && !src.includes('avatar') && !src.includes('profile') && !src.startsWith('data:image') && src.length > 20) {
@@ -86,41 +145,74 @@ function scrapeSavedPosts() {
       }
     }
     
-    // 7. Post Link
-    const postUrl = getAttr(item, '.entity-result__title-text a, a[href*="/feed/update/"]', 'href');
+    // Post URL
+    let postUrl = '';
+    const postUrlSelectors = [
+      '.entity-result__title-text a',
+      'a[href*="/feed/update/"]',
+      'a.app-aware-link'
+    ];
+    for (const selector of postUrlSelectors) {
+      const href = getAttr(item, selector, 'href');
+      if (href && (href.includes('/feed/update/') || href.includes('/in/') || href.includes('/news/'))) {
+        postUrl = href;
+        break;
+      }
+    }
     
     // Generate unique ID
-    let id = postUrl ? postUrl.split('/')[postUrl.split('/').length - 2] : '';
+    let id = '';
+    if (postUrl) {
+      const parts = postUrl.split('/');
+      id = parts[parts.length - 2] || parts[parts.length - 1] || '';
+    }
     if (!id || id.length < 5) {
       id = 'scraped_' + index + '_' + Date.now();
     }
     
-    if (authorName && content) {
-      scrapedPosts.push({
-        id,
-        authorName,
-        authorTitle,
-        authorAvatar,
-        timeAgo: timeAgo || 'Recently',
-        content,
-        thumbnailUrl: thumbnailUrl || undefined,
-        postUrl,
-        date: new Date().toISOString()
-      });
-    }
+    scrapedPosts.push({
+      id,
+      author: {
+        name: authorName,
+        title: authorTitle,
+        avatar: authorAvatar,
+        followers: ''
+      },
+      content,
+      thumbnailUrl: thumbnailUrl || undefined,
+      postUrl,
+      timeAgo,
+      date: new Date().toISOString()
+    });
   });
   
   if (scrapedPosts.length > 0) {
-    chrome.storage.local.set({ scrapedPosts }, () => {
-      log(`Successfully saved ${scrapedPosts.length} posts to storage!`);
-      showToast(`Synced ${scrapedPosts.length} saved posts to Saved Hub!`);
+    chrome.storage.local.get('scrapedPosts', (result) => {
+      const currentPosts = result.scrapedPosts || [];
+      const postMap = new Map();
+      currentPosts.forEach(p => postMap.set(p.id, p));
+      
+      let newAdded = false;
+      scrapedPosts.forEach(p => {
+        if (!postMap.has(p.id)) {
+          postMap.set(p.id, p);
+          newAdded = true;
+        }
+      });
+      
+      if (newAdded || currentPosts.length === 0) {
+        const mergedPosts = Array.from(postMap.values());
+        chrome.storage.local.set({ scrapedPosts: mergedPosts }, () => {
+          log(`Successfully saved ${mergedPosts.length} posts to storage!`);
+          showToast(`Synced ${mergedPosts.length} saved posts to Saved Hub!`);
+        });
+      }
     });
   }
 }
 
 // Function to inject a beautiful overlay toast notification
 function showToast(message) {
-  // Check if toast already exists
   let toast = document.getElementById('li-saved-hub-toast');
   if (!toast) {
     toast = document.createElement('div');
@@ -154,7 +246,6 @@ function showToast(message) {
     </button>
   `;
   
-  // Show it
   setTimeout(() => {
     toast.style.opacity = '1';
     toast.style.transform = 'translateY(0)';
@@ -164,7 +255,6 @@ function showToast(message) {
     chrome.runtime.sendMessage({ action: 'open_hub' });
   });
   
-  // Hide after 6 seconds
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateY(-20px)';
@@ -176,13 +266,18 @@ function showToast(message) {
 
 // Function to inject floating action button
 function injectFloatingButton() {
+  if (!isSavedPostsPage()) {
+    const existingFab = document.getElementById('li-saved-hub-fab');
+    if (existingFab) existingFab.remove();
+    return;
+  }
+
   if (document.getElementById('li-saved-hub-fab')) return;
   
   const fab = document.createElement('button');
   fab.id = 'li-saved-hub-fab';
   fab.innerText = 'Open Saved Hub';
   
-  // Styling
   fab.style.position = 'fixed';
   fab.style.bottom = '24px';
   fab.style.right = '24px';
@@ -227,12 +322,18 @@ function init() {
     injectFloatingButton();
   }, 2500);
 
-  // Monitor DOM modifications (for scroll loads)
+  // Monitor DOM modifications (for scroll loads and URL navigation)
   let timeout = null;
   const observer = new MutationObserver(() => {
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => {
-      scrapeSavedPosts();
+      if (isSavedPostsPage()) {
+        injectFloatingButton();
+        scrapeSavedPosts();
+      } else {
+        const fab = document.getElementById('li-saved-hub-fab');
+        if (fab) fab.remove();
+      }
     }, 1500);
   });
   

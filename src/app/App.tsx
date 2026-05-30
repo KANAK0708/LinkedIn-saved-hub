@@ -32,19 +32,22 @@ export default function App() {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         chrome.storage.local.get('scrapedPosts', (result) => {
           if (result.scrapedPosts && Array.isArray(result.scrapedPosts) && result.scrapedPosts.length > 0) {
-            const mapped = result.scrapedPosts.map((p: any) => ({
-              id: p.id || Math.random().toString(),
-              author: {
-                name: p.authorName || 'LinkedIn User',
-                title: p.authorTitle || '',
-                avatar: p.authorAvatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop',
-                followers: p.authorFollowers || '',
-              },
-              content: p.content || '',
-              timeAgo: p.timeAgo || 'Recently',
-              thumbnailUrl: p.thumbnailUrl || undefined,
-              date: p.date ? new Date(p.date) : new Date(),
-            }));
+            const mapped = result.scrapedPosts.map((p: any) => {
+              const authorObj = p.author || {};
+              return {
+                id: p.id || Math.random().toString(),
+                author: {
+                  name: authorObj.name || p.authorName || 'LinkedIn User',
+                  title: authorObj.title || p.authorTitle || '',
+                  avatar: authorObj.avatar || p.authorAvatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop',
+                  followers: authorObj.followers || p.authorFollowers || '',
+                },
+                content: p.content || '',
+                timeAgo: p.timeAgo || 'Recently',
+                thumbnailUrl: p.thumbnailUrl || undefined,
+                date: p.date ? new Date(p.date) : new Date(),
+              };
+            });
             setPostsList(mapped);
           }
         });
