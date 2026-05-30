@@ -162,7 +162,6 @@ function showToast(message) {
   
   document.getElementById('li-toast-btn').addEventListener('click', () => {
     chrome.runtime.sendMessage({ action: 'open_hub' });
-    window.open(chrome.runtime.getURL('index.html'), '_blank');
   });
   
   // Hide after 6 seconds
@@ -211,7 +210,7 @@ function injectFloatingButton() {
   });
   
   fab.addEventListener('click', () => {
-    window.open(chrome.runtime.getURL('index.html'), '_blank');
+    chrome.runtime.sendMessage({ action: 'open_hub' });
   });
   
   document.body.appendChild(fab);
